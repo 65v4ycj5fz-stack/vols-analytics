@@ -65,7 +65,7 @@ export function Layout() {
           </ul>
         </nav>
       </header>
-      <main id="main" className="mx-auto w-full max-w-7xl flex-1 px-4 py-6">
+      <main id="main" className="mx-auto min-h-screen w-full max-w-7xl flex-1 px-4 py-6">
         <Outlet />
       </main>
       <footer className="border-t border-line bg-surface">
