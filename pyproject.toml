@@ -1,0 +1,3 @@
+[tool.pytest.ini_options]
+testpaths = ["pipeline/tests", "model/tests"]
+addopts = "-ra"

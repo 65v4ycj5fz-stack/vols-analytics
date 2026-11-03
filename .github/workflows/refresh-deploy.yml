@@ -1,0 +1,119 @@
+name: Refresh data & deploy
+
+on:
+  schedule:
+    - cron: "0 11 * 8-12,1 *"   # daily 6-7am Eastern, August through January (in season)
+    - cron: "0 11 * 2-7 1"      # Mondays, February through July (offseason)
+  push:
+    branches: [main]
+  workflow_dispatch: {}          # "Run workflow" button in the Actions tab
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: refresh-deploy
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      CFBD_API_KEY: ${{ secrets.CFBD_API_KEY }}
+      CFBD_MAX_CALLS: "200"          # first run on an empty cache needs ~110 calls; daily runs ~15
+      SITE_UNLISTED: ${{ vars.SITE_UNLISTED }}
+      SHEET_INJURIES_URL: ${{ vars.SHEET_INJURIES_URL }}
+      SHEET_DEPTH_CHART_URL: ${{ vars.SHEET_DEPTH_CHART_URL }}
+      SHEET_SCHEMES_URL: ${{ vars.SHEET_SCHEMES_URL }}
+      SHEET_OPPONENT_SCOUTING_URL: ${{ vars.SHEET_OPPONENT_SCOUTING_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install -q -r requirements.txt
+          npm ci
+
+      # The API response cache makes refreshes cheap: finished weeks/seasons are never re-fetched.
+      # A rolling key saves a new cache every run and restores the most recent one.
+      - name: Restore API cache
+        uses: actions/cache/restore@v4
+        with:
+          path: data/cache
+          key: api-cache-${{ github.run_id }}
+          restore-keys: api-cache-
+
+      - name: Check manual data (injuries, depth chart, schemes)
+        run: .venv/bin/python -m pipeline.manual
+
+      - name: Check API key
+        run: |
+          if [ -z "$CFBD_API_KEY" ]; then
+            echo "::error::Repository secret CFBD_API_KEY is not set (Settings > Secrets and variables > Actions)."
+            exit 1
+          fi
+
+      - name: Refresh data
+        run: .venv/bin/python -m pipeline.run
+
+      - name: Save API cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: data/cache
+          key: api-cache-${{ github.run_id }}
+
+      - name: Run model (backtest, projections, simulation)
+        run: .venv/bin/python -m model.run
+
+      - name: Test
+        run: |
+          .venv/bin/python -m pytest
+          npx tsc -b
+          npx vitest run
+
+      - name: Build site
+        run: npm run build
+
+      - name: Make sure no secret ended up in the site
+        run: |
+          if grep -rqF "$CFBD_API_KEY" dist/; then echo "::error::API key found in build output"; exit 1; fi
+
+      # Lighthouse (mobile settings): reports performance/accessibility; warns, never blocks a deploy
+      - name: Lighthouse audit
+        continue-on-error: true
+        run: npx --yes @lhci/cli@0.15.x autorun
+      - name: Save Lighthouse report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-report
+          path: lighthouse-report
+          if-no-files-found: ignore
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,14 @@
+*.pyc
+.DS_Store
+.env
+.pytest_cache/
+.venv/
+__pycache__/
+data/cache/
+data/processed/
+dist/
+node_modules/
+lighthouse-report/
+.lighthouseci/
+public/data/
+tsconfig.tsbuildinfo
