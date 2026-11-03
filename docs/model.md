@@ -139,8 +139,10 @@ applied. An input with no variation, or fewer than 50 usable games, gets no adju
 
 **Injuries** can't be fitted from public data, so the rule is a stated assumption:
 `impact (0–5, manual) × 0.6 pts × P(out | status) × depth weight`, where
-P(out) is out 1.0 / doubtful 0.75 / questionable 0.5 / probable 0.1 / available 0, and the
-depth weight is starter 1.0 / 2nd string 0.5 / 3rd 0.25 / not on the chart 0.5. A 5/5
+P(out) follows the SEC availability-report definitions (out 1.0 / doubtful 0.75 / questionable or
+game-time decision 0.5 / probable 0.25 / available 0), and the depth weight is starter 1.0 / 2nd string 0.5 /
+3rd 0.25 / not on the chart 0.5. When no manual depth chart exists for a team, the estimated depth chart
+(box-score usage) supplies the string. A 5/5
 starter ruled out is about 3 points. All of these values are adjustable in the UI.
 
 Turnover data (box scores) is pulled for the last three seasons only, to save API calls.

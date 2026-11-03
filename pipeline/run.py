@@ -23,6 +23,7 @@ from pipeline.schemas import VenueRaw
 from pipeline.sources import cfbd_games, cfbd_players, cfbd_plays, cfbd_ratings, cfbd_stats, openmeteo
 from pipeline.sources.base import fetch
 from pipeline.transforms.context import game_context, venues_frame
+from pipeline.transforms import estimates
 from pipeline.transforms import players as player_tx
 from pipeline.transforms import tendencies as tend
 from pipeline.transforms.plays import EXPLOSIVE_PASS_YDS, EXPLOSIVE_RUSH_YDS, plays_frame
@@ -314,6 +315,33 @@ def build_plays_and_players(client: CFBDClient, cur_game_rows, cur_games: pd.Dat
         roster_notes.append("CFBD reported the same class year for every player this season, so class is left blank.")
     write_dataset("roster", roster, season=season, sources=ro.sources, notes=roster_notes,
                   description=f"{team} roster from CFBD (class_year 1 = freshman).")
+
+    # estimated depth chart + absence alerts (used only where no manual entry exists)
+    logs_df = player_tx.game_logs(gl.rows, team, cur_games)
+    stats_df = player_tx.season_stats(ps.rows, focus_set)
+    as_of = max(s_["fetched_at"] for s_ in gl.sources) if gl.sources else None
+    tn_usage, tn_note = estimates.tennessee_usage(logs_df, roster)
+    est = estimates.estimated_depth(tn_usage, team, tn_note, as_of)
+    for opp in focus[1:]:
+        if opp in fbs_names:
+            u, note = estimates.season_usage(stats_df, opp)
+            est += estimates.estimated_depth(u, opp, note, as_of)
+    est_df = pd.DataFrame(est)
+    (config.PROCESSED / "manual").mkdir(parents=True, exist_ok=True)
+    est_df.to_csv(config.PROCESSED / "manual" / "depth_chart_estimated.csv", index=False)
+    write_dataset("depth_chart_estimated", est_df, season=season, sources=gl.sources + ps.sources,
+                  description="Depth chart ESTIMATED from box-score usage (not a team release). "
+                              "Used only for teams without a manual depth chart.",
+                  notes=["Offensive line is omitted (no individual OL stats). CB/S/nickel can't be separated "
+                         "(CFBD lists DB). Ranking stat per group is in ranking_stat.",
+                         "A manual depth_chart.csv entry for a team replaces this estimate everywhere."])
+    alerts = estimates.absence_alerts(logs_df, roster, team)
+    write_dataset("absence_alerts", alerts, season=season, sources=gl.sources,
+                  description=f"{team} regular contributors with no recorded stats in the latest game.",
+                  notes=["An absence signal from box scores, NOT an injury report. It does not change the "
+                         "projection; confirm in the official SEC availability report and enter it in "
+                         "injuries.csv if it's an injury.",
+                         "Regular = stats in >= 60% of earlier games (>= 3) and >= 2 touches/tackles per game."])
 
 
 def main(argv: list[str] | None = None) -> int:

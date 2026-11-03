@@ -97,7 +97,10 @@ class ResidualFit:
 
 # ---- injuries (manual) ------------------------------------------------------
 
-STATUS_PROB_OUT = {"out": 1.0, "doubtful": 0.75, "questionable": 0.5, "probable": 0.1, "available": 0.0}
+# SEC availability-report definitions: doubtful = 25% chance to play, questionable = 50%,
+# probable = 75%; "game-time decision" (game-day only) is treated like questionable.
+STATUS_PROB_OUT = {"out": 1.0, "doubtful": 0.75, "questionable": 0.5, "game-time decision": 0.5,
+                   "probable": 0.25, "available": 0.0}
 DEPTH_WEIGHT = {1: 1.0, 2: 0.5, 3: 0.25}
 DEPTH_WEIGHT_UNLISTED = 0.5
 POINTS_PER_IMPACT = 0.6  # ASSUMPTION: a 5/5 impact starter fully out ~ 3 points. Not fit from data.

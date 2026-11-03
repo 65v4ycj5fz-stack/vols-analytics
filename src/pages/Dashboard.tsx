@@ -10,12 +10,14 @@ interface Outlook { expected_wins: number; p_at_least: Record<string, number>; n
   conference?: { p_top2_finish: number; expected_conf_wins: number } }
 
 export default function Dashboard() {
+  const alertsDs = useDataset<{ player: string; position: string | null; games_with_stats: number; team_games: number }[]>("absence_alerts");
   const s = all<[SiteMeta, Projections, ScheduleRow[], TrendRow[], Outlook]>(
     useDataset<SiteMeta>("meta"), useDataset<Projections>("projections"), useDataset<ScheduleRow[]>("schedule"),
     useDataset<TrendRow[]>("rating_trend"), useDataset<Outlook>("season_outlook"));
   if (s.status === "loading") return <Loading />;
   if (s.status === "error") return <ErrorState error={s.error} />;
   const [meta, proj, sched, trend, outlook] = s.values;
+  const alerts = alertsDs.status === "ready" ? alertsDs.data : [];
   const m = meta.data;
   const next = proj.data.games.find((g) => !g.completed);
   const last5 = sched.data.filter((g) => g.completed).slice(-5).reverse();
@@ -79,6 +81,13 @@ export default function Dashboard() {
               Injuries are entered manually (see the <Link to="/injuries">Injuries</Link> page). The model's injury
               adjustment is 0 until rows are added.
             </Empty>
+          )}
+          {alerts.length > 0 && (
+            <div className="mt-3 text-sm">
+              <div className="text-xs font-semibold uppercase text-ink-3">Missing from the latest box score (not an injury report)</div>
+              <ul className="mt-1">{alerts.map((a) => <li key={a.player}>{a.player} {a.position && <span className="text-ink-3">{a.position}</span>}
+                <span className="text-xs text-ink-3"> · stats in {a.games_with_stats} of {a.team_games} earlier games</span></li>)}</ul>
+            </div>
           )}
         </Card>
         <Card title="Matchup edges" subtitle={next ? `vs ${next.opponent}: season-to-date, opponent-adjusted` : undefined}>

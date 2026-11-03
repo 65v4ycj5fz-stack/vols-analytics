@@ -155,6 +155,7 @@ const STATUS: Record<string, { cls: string; icon: string }> = {
   out: { cls: "bg-critical text-white", icon: "✕" },
   doubtful: { cls: "bg-serious text-ink", icon: "!" },
   questionable: { cls: "bg-warning text-ink", icon: "?" },
+  "game-time decision": { cls: "bg-warning text-ink", icon: "?" },
   probable: { cls: "bg-good text-white", icon: "✓" },
   available: { cls: "bg-good text-white", icon: "✓" },
 };

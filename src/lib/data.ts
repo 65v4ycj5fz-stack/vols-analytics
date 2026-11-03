@@ -142,6 +142,8 @@ export const DATASETS: { name: string; label: string; json?: boolean; csv?: bool
   { name: "player_game_logs", label: "Player game logs" },
   { name: "roster", label: "Roster" },
   { name: "depth_chart", label: "Depth chart (manual)" },
+  { name: "depth_chart_estimated", label: "Depth chart (estimated from box scores)" },
+  { name: "absence_alerts", label: "Absence alerts (box-score based)" },
   { name: "injuries", label: "Injuries (manual)" },
   { name: "schemes", label: "Scheme notes (manual)" },
   { name: "opponent_scouting", label: "Opponent scouting (manual)" },

@@ -5,6 +5,8 @@ import { Card, Empty, ErrorState, Loading, PageHeader, Select, SourceNote, StatT
 import { all, useDataset, type Projections } from "../lib/data";
 import { ago, dateLabel, pct, siteWord } from "../lib/format";
 
+interface Alert { team: string; player: string; position: string | null; games_with_stats: number; team_games: number;
+  avg_involvement: number; last_week_with_stats: number; consecutive_games_missing: number }
 export interface InjuryRow {
   team: string; player: string; position: string; status: string; injury_area: string | null; date_reported: string;
   expected_return: string | null; source_url: string | null; impact_rating: number; last_updated: string; source: string;
@@ -14,8 +16,8 @@ const ORDER = ["out", "doubtful", "questionable", "probable", "available"];
 interface Assumptions { injury_assumptions: { points_per_impact: number; status_prob_out: Record<string, number>; depth_weight: Record<string, number> } }
 
 export default function Injuries() {
-  const s = all<[InjuryRow[], Projections, Assumptions]>(useDataset<InjuryRow[]>("injuries"), useDataset<Projections>("projections"),
-    useDataset<Assumptions>("adjustments_model"));
+  const s = all<[InjuryRow[], Projections, Assumptions, Alert[]]>(useDataset<InjuryRow[]>("injuries"), useDataset<Projections>("projections"),
+    useDataset<Assumptions>("adjustments_model"), useDataset<Alert[]>("absence_alerts"));
   const [team, setTeam] = useState("All");
   const columns = useMemo<ColumnDef<InjuryRow, unknown>[]>(() => [
     { accessorKey: "player", header: "Player", meta: { align: "left" } },
@@ -37,7 +39,7 @@ export default function Injuries() {
   ], []);
   if (s.status === "loading") return <Loading />;
   if (s.status === "error") return <ErrorState error={s.error} />;
-  const [inj, proj, adm] = s.values;
+  const [inj, proj, adm, alerts] = s.values;
   const a = adm.data.injury_assumptions;
   const statusText = Object.entries(a.status_prob_out).filter(([, v]) => v > 0).map(([k, v]) => `${k} ${pct(v)}`).join(", ");
   const depthText = Object.entries(a.depth_weight).map(([k, v]) => `${k === "unlisted" ? "not on the depth chart" : k === "1" ? "starter" : `string ${k}`} ${v}`).join(", ");
@@ -78,11 +80,33 @@ export default function Injuries() {
           </Card>
         </>
       )}
+      <AbsenceAlerts alerts={alerts.data} />
       <Card className="mt-4" title="How injuries move the projection">
         <p className="text-sm text-ink-2">Expected points lost = impact rating × {a.points_per_impact} pts × chance of missing the game
           ({statusText}) × depth-chart weight ({depthText}). A 5/5 starter who is out ≈ {(5 * a.points_per_impact).toFixed(1)} points. This rule is an <strong>assumption</strong>, not fit from
           data, because public injury histories aren't available. Adjust it per game with the injury sliders on the Matchup page.</p>
       </Card>
     </>
+  );
+}
+
+export function AbsenceAlerts({ alerts, compact = false }: { alerts: Alert[]; compact?: boolean }) {
+  return (
+    <Card className={compact ? "" : "mt-4"} title="Missing from the latest box score"
+      subtitle="Automatic: regular contributors with no recorded stats in the most recent game. Not an injury report.">
+      {alerts.length === 0 ? <Empty title="No absences flagged" /> : (
+        <ul className="divide-y divide-line text-sm">
+          {alerts.map((a) => (
+            <li key={a.player} className="flex flex-wrap items-baseline justify-between gap-2 py-1.5">
+              <span><strong>{a.player}</strong>{a.position && <span className="text-ink-3"> {a.position}</span>}</span>
+              <span className="text-xs text-ink-2">stats in {a.games_with_stats} of {a.team_games} earlier games · last seen week {a.last_week_with_stats}
+                {a.consecutive_games_missing > 1 ? ` · missing ${a.consecutive_games_missing} straight` : ""}</span>
+            </li>))}
+        </ul>
+      )}
+      {!compact && <p className="mt-2 text-xs text-ink-3">Box scores only list players who recorded a stat, so injuries, benchings and quiet games all look
+        the same. These don't change the projection. Check the official SEC availability report (published for conference games
+        from three days before kickoff) and add confirmed injuries to <code>injuries.csv</code>.</p>}
+    </Card>
   );
 }

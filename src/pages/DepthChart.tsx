@@ -8,6 +8,8 @@ interface DepthRow {
   class: string | null; height: string | null; weight: number | null; snap_pct: number | null; notes: string | null;
   last_updated: string; source: string;
 }
+interface EstRow { team: string; position_group: string; position: string; string: number; player: string; jersey: number | null;
+  rank_in_group: number; ranking_stat: string; ranking_value: number; basis: string; last_updated: string | null }
 interface RosterRow { player_id: string; player: string; jersey: number | null; position: string | null; class_year: number | null }
 
 /** Formation slots: grid position (row, col on a 11-column field) and which depth-chart positions fill it. */
@@ -71,13 +73,14 @@ function assign(rows: DepthRow[], slots: Slot[]): { bySlot: Map<string, DepthRow
 }
 
 export default function DepthChart() {
-  const s = all<[DepthRow[], InjuryRow[], RosterRow[]]>(useDataset<DepthRow[]>("depth_chart"), useDataset<InjuryRow[]>("injuries"),
-    useDataset<RosterRow[]>("roster"));
+  const s = all<[DepthRow[], InjuryRow[], RosterRow[], EstRow[]]>(useDataset<DepthRow[]>("depth_chart"), useDataset<InjuryRow[]>("injuries"),
+    useDataset<RosterRow[]>("roster"), useDataset<EstRow[]>("depth_chart_estimated"));
   const [team, setTeam] = useState("Tennessee");
   if (s.status === "loading") return <Loading />;
   if (s.status === "error") return <ErrorState error={s.error} />;
-  const [depth, inj, roster] = s.values;
-  const teams = [...new Set(["Tennessee", ...depth.data.map((r) => r.team)])];
+  const [depth, inj, roster, est] = s.values;
+  const teams = [...new Set(["Tennessee", ...depth.data.map((r) => r.team), ...est.data.map((r) => r.team)])];
+  const estRows = est.data.filter((r) => r.team === team);
   const rows = depth.data.filter((r) => r.team === team);
   const injury = (name: string) => inj.data.find((i) => i.team === team && i.player.toLowerCase() === name.toLowerCase() && i.status !== "available");
 
@@ -87,14 +90,14 @@ export default function DepthChart() {
         {teams.length > 1 && <div className="w-48"><Select label="Team" value={team} onChange={setTeam} options={teams.map((t) => ({ value: t, label: t }))} /></div>}
       </PageHeader>
       {rows.length === 0 ? (
+        estRows.length ? <Estimated rows={estRows} injury={injury} team={team} /> : (
         <>
-          <Card><Empty title={`No depth chart entered for ${team}`}>
-            Depth order isn't published by the stats API, so it's entered by hand in <code>data/manual/depth_chart.csv</code> (or a linked
-            Google Sheet). See <code>data/manual/README.md</code>; <code>python -m pipeline.manual seed-depth</code> pre-fills names from
-            the roster. Below is the official CFBD roster grouped by position. It does <strong>not</strong> show depth order.
+          <Card><Empty title={`No depth chart for ${team}`}>
+            Depth order isn't published by the stats API. Enter it in <code>data/manual/depth_chart.csv</code> (see
+            <code> data/manual/README.md</code>). Below is the official CFBD roster grouped by position. It does <strong>not</strong> show depth order.
           </Empty></Card>
           {team === "Tennessee" && <RosterByPosition roster={roster.data} />}
-        </>
+        </>)
       ) : (
         <div className="space-y-4">
           {Object.entries(FORMATIONS).map(([group, f]) => {
@@ -133,6 +136,46 @@ export default function DepthChart() {
         </div>
       )}
     </>
+  );
+}
+
+function Estimated({ rows, injury, team }: { rows: EstRow[]; injury: (n: string) => InjuryRow | undefined; team: string }) {
+  const groups = ["offense", "defense", "special teams"];
+  return (
+    <div className="space-y-4">
+      <div role="note" className="rounded-xl border border-serious/50 bg-edge-bad p-4 text-sm">
+        <strong>Estimated from game stats, not an official depth chart.</strong> Players are ranked within each position group by
+        recent usage ({rows[0].basis}). The box score can't see snaps, so the offensive line isn't shown and cornerbacks/safeties are
+        grouped as DB. Enter a real depth chart for {team} in <code>data/manual/depth_chart.csv</code> and it replaces this estimate.
+      </div>
+      <div className="grid gap-4 lg:grid-cols-3">
+        {groups.map((g) => {
+          const list = rows.filter((r) => r.position_group === g);
+          const positions = [...new Set(list.map((r) => r.position))];
+          return (
+            <Card key={g} title={`${g[0].toUpperCase()}${g.slice(1)} (estimated)`}>
+              {positions.map((p) => (
+                <div key={p} className="mb-3">
+                  <div className="text-xs font-semibold uppercase text-ink-3">{p} · by {list.find((r) => r.position === p)!.ranking_stat}</div>
+                  <ol className="mt-1 space-y-0.5 text-sm">
+                    {list.filter((r) => r.position === p).map((r) => {
+                      const inj = injury(r.player);
+                      return (
+                        <li key={r.player} className="flex items-center justify-between gap-2">
+                          <span>{r.string === 1 ? <strong>{r.player}</strong> : <span className="text-ink-2">{r.player}</span>}
+                            {r.jersey != null && <span className="text-ink-3"> #{r.jersey}</span>}
+                            {inj && <> <StatusBadge status={inj.status} /></>}</span>
+                          <span className="tabular text-xs text-ink-3">{r.ranking_value.toFixed(0)}</span>
+                        </li>);
+                    })}
+                  </ol>
+                </div>
+              ))}
+              {g === "offense" && <p className="text-xs text-ink-3">Offensive line: not estimable from box scores.</p>}
+            </Card>);
+        })}
+      </div>
+    </div>
   );
 }
 

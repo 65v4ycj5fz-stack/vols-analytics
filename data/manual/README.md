@@ -73,7 +73,7 @@ e.g. `Tennessee`, `Texas A&M`, `LSU`, `Vanderbilt`, `Kentucky`. Capitalization o
 | team | yes | CFBD team name |
 | player | yes | Full name, spelled like the depth chart/roster |
 | position | yes | e.g. QB, RB, WR, TE, OL, DL, LB, CB, S, K, P |
-| status | yes | `out`, `doubtful`, `questionable`, `probable`, `available` |
+| status | yes | `out`, `doubtful`, `questionable`, `game-time decision`, `probable`, `available` (the SEC availability-report terms) |
 | injury_area | no | e.g. ankle, knee, undisclosed |
 | date_reported | yes | date |
 | expected_return | no | free text, e.g. "Week 12" or "season" |
@@ -83,7 +83,7 @@ e.g. `Tennessee`, `Texas A&M`, `LSU`, `Vanderbilt`, `Kentucky`. Capitalization o
 | source | yes | where this came from |
 
 **How the model uses it:** expected points lost = impact × 0.6 × chance of missing the game
-(out 100%, doubtful 75%, questionable 50%, probable 10%, available 0%) × depth weight
+(using the SEC's definitions: out 100%, doubtful 75%, questionable or game-time decision 50%, probable 25%, available 0%) × depth weight
 (starter 1.0, 2nd string 0.5, 3rd 0.25, not on the depth chart 0.5). A 5/5 starter who is out ≈ 3 points.
 This rule is an assumption, not something learned from data. You can override it with the injury
 sliders on the Matchup page. When a player is healthy again, set `available` or delete the row.
@@ -93,6 +93,18 @@ Example (an illustration, not a real report):
 team,player,position,status,injury_area,date_reported,expected_return,source_url,impact_rating,last_updated,source
 Tennessee,Jane Example,WR,questionable,ankle,2026-11-03,,https://example.com/report,2,2026-11-04,example
 ```
+
+### Where to get injury information: the SEC availability report
+
+For conference games, every SEC school must file an official availability report starting three days before
+kickoff, with daily updates and a final report about 90 minutes before the game. It's the best source for this
+file. The site does **not** download it automatically: the SEC's website blocks automated and AI crawlers, and we only
+use sources that allow it. Copying it in takes a couple of minutes. Use the report's status words exactly, and
+put "SEC availability report" (plus the date) in `source`.
+
+The **Injuries** page also shows *"Missing from the latest box score"* alerts, generated automatically. They list
+regular contributors with no recorded stats in the latest game. They're a prompt to check the report, not an
+injury listing, and they never change the projection by themselves.
 
 ### depth_chart.csv
 
@@ -113,6 +125,11 @@ Tennessee,Jane Example,WR,questionable,ankle,2026-11-03,,https://example.com/rep
 
 List two starters (string 1) at WR, CB, S, DE, DT or LB if the team plays two at once. The validator only
 warns about duplicate starters at other positions.
+
+**If you leave this file empty,** the site shows an *estimated* depth chart for Tennessee and each opponent,
+ranked by recent usage from box scores (pass attempts, carries, receptions, tackles), and the injury rule uses it to
+weight starters. It's clearly labeled as an estimate, can't rank offensive linemen, and groups cornerbacks and
+safeties as DB. Any team you enter here replaces its estimate.
 
 **Shortcut:** run `python -m pipeline.manual seed-depth` (or ask whoever runs the project) to create
 `depth_chart_seed.csv` from the official CFBD roster, with names, positions, jerseys and sizes filled in.

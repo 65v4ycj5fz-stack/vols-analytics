@@ -98,7 +98,11 @@ message naming the file, row and column. The live site never shows broken data.
 - Turnover history is pulled for the last three seasons only (to save API calls). Game logs are Tennessee-only.
 - CFBD's 2026 roster lists every player as the same class year, so class is left blank.
 - Kickoffs marked TBD get no weather forecast, and forecasts only exist about two weeks out.
-- Depth chart, injuries and scheme notes are empty until someone enters them.
+- Injuries aren't automated: the official SEC availability report must be copied in by hand, because the SEC
+  site blocks automated and AI crawlers. "Missing from the latest box score" alerts are automatic, but they're an
+  absence signal, not an injury report.
+- When no manual depth chart is entered, the site shows an *estimate* from box-score usage. It has no
+  offensive line and doesn't split CB from S. Scheme notes stay empty until entered.
 
 **Site & operations**
 - The free CFBD tier (1,000 calls/month) is shared by local runs and the workflow. A cold start costs ~110 calls.

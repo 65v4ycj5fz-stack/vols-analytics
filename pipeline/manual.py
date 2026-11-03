@@ -112,14 +112,14 @@ class DepthChartRow(_Manual):
         return v
 
 
-STATUSES = ("out", "doubtful", "questionable", "probable", "available")
+STATUSES = ("out", "doubtful", "questionable", "game-time decision", "probable", "available")
 
 
 class InjuryRow(_Manual):
     team: str
     player: str
     position: str
-    status: Literal["out", "doubtful", "questionable", "probable", "available"]
+    status: Literal["out", "doubtful", "questionable", "game-time decision", "probable", "available"]
     injury_area: str | None = None
     date_reported: date
     expected_return: str | None = None
@@ -129,7 +129,10 @@ class InjuryRow(_Manual):
     @field_validator("status", mode="before")
     @classmethod
     def _status(cls, v):
-        return v.strip().lower() if isinstance(v, str) else v
+        if isinstance(v, str):
+            v = " ".join(v.strip().lower().replace("-", " ").split())  # "Game-Time Decision" -> "game time decision"
+            return "game-time decision" if v in ("game time decision", "gtd") else v
+        return v
 
     @field_validator("position", mode="before")
     @classmethod

@@ -184,6 +184,10 @@ def build() -> None:
     # validated copies written by the pipeline (local file or Google Sheet)
     injuries = load_manual(P / "manual" / "injuries.csv")
     depth = load_manual(P / "manual" / "depth_chart.csv")
+    est = load_manual(P / "manual" / "depth_chart_estimated.csv")
+    if len(est):  # estimated depth fills in only for teams with no manual depth chart
+        manual_teams = set(depth["team"]) if len(depth) else set()
+        depth = pd.concat([depth, est[~est["team"].isin(manual_teams)][["team", "player", "string"]]], ignore_index=True)
     splits = proj.split_ratings(adv, games, P / f"plays_{season}.parquet")
     sched = pd.DataFrame(json.loads((config.PUBLIC_DATA / "schedule.json").read_text())["data"])
     projections, outlook = proj.build(fc, model, totals_model, fit, adj["resid_corr"], tau, injuries, depth,

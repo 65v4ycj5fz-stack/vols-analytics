@@ -84,6 +84,12 @@ COMMON.update({
     "opp_turnovers": "Opponent turnovers", "unit": "offense / defense / special teams",
     "key": "Metric key", "label": "Display label", "group": "offense / defense / special / overall",
     "definition": "How it's computed", "higher_is_better": "Rank direction", "neutral": "Style stat (no good/bad coloring)",
+    "rank_in_group": "Rank within the position group (estimate)", "ranking_stat": "Stat used to rank the group",
+    "ranking_value": "Value of the ranking stat", "basis": "Games/totals the estimate is based on",
+    "position_group": "offense / defense / special teams", "string": "1 = starter, 2 = backup, ...",
+    "games_with_stats": "Earlier games with a stat line", "team_games": "Team games before the latest",
+    "avg_involvement": "Pass att/5 + carries + receptions + tackles per game", "last_week_with_stats": "Latest week with a stat line",
+    "consecutive_games_missing": "Straight games without a stat line", "note": "Explanation",
     "dataset": "Dataset name", "origin": "local file or Google Sheet", "rows": "Row count", "warnings": "Validation warnings",
 })
 STAT_CATS = {"passing": "Passing", "rushing": "Rushing", "receiving": "Receiving", "defensive": "Defense",
