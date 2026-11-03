@@ -147,7 +147,8 @@ def build(client: CFBDClient) -> dict[str, int]:
     write_dataset("rating_trend", trend, season=season, sources=game_sources,
                   description=f"{team} rating after each {season} game: our Elo and opponent-adjusted net EPA/play.")
 
-    build_plays_and_players(client, cur_game_rows, cur_games, fbs_names, sched)
+    summary = build_plays_and_players(client, cur_game_rows, cur_games, fbs_names, sched)
+    publish_team_slices(season_tbl, summary, games_tbl, sched, stats.sources + adv_season.sources + box.sources)
     publish_manual(manual_data, set(all_games["home_team"]) | set(all_games["away_team"]))
 
     write_dataset("metrics", [
@@ -205,6 +206,31 @@ def build_context(client: CFBDClient, all_games: pd.DataFrame) -> None:
     wx = pd.concat([wx_hist.assign(kind="observed"), wx_next.assign(kind="forecast")], ignore_index=True)
     wx.to_parquet(config.PROCESSED / "weather.parquet", index=False)
     log(f"context: {len(ctx):,} games, weather for {len(wx_hist):,} past + {len(wx_next):,} upcoming outdoor games")
+
+
+TREND_COLS = ["points_for", "points_against", "off_epa", "def_epa", "off_success", "def_success", "off_ypp", "def_ypp",
+              "off_rush_epa", "def_rush_epa", "off_pass_epa", "def_pass_epa"]
+
+
+def publish_team_slices(season_tbl: pd.DataFrame, summary: pd.DataFrame, games_tbl: pd.DataFrame,
+                        sched: pd.DataFrame, sources: list[dict]) -> None:
+    """Small files for fast pages: Tennessee + opponents' full stat rows, and Tennessee's game trends.
+
+    The full all-FBS tables stay available (and load only when the "All FBS teams" table is opened).
+    """
+    team, season = config.TEAM, config.SEASON
+    focus = [team] + [o for o in sched["opponent"].tolist() if o != team]
+    merged = season_tbl.merge(summary.drop(columns=["conference"], errors="ignore"), on="team", how="left")
+    prof = merged[merged["team"].isin(focus)].copy()
+    prof["fbs_teams"] = len(season_tbl)
+    write_dataset("team_profiles", prof, season=season, sources=sources,
+                  description=f"Season stats + tendencies with national/conference ranks for {team} and its opponents "
+                              "(a slice of team_season_stats and tendency_summary).")
+    mine = games_tbl[games_tbl["team"] == team][["game_id", "week", "start_date", "opponent", "site"] + TREND_COLS]
+    fbs_avg = {c: float(pd.to_numeric(games_tbl[c], errors="coerce").mean()) for c in TREND_COLS}
+    write_dataset("team_trends", {"games": mine.to_dict("records"), "fbs_avg": fbs_avg}, sources=sources,
+                  season=season, csv=False,
+                  description=f"{team} per-game stats for trend charts, plus the FBS average per team-game.")
 
 
 def publish_manual(loaded: dict[str, manual.Loaded], known_teams: set[str]) -> None:
@@ -342,6 +368,7 @@ def build_plays_and_players(client: CFBDClient, cur_game_rows, cur_games: pd.Dat
                          "projection; confirm in the official SEC availability report and enter it in "
                          "injuries.csv if it's an injury.",
                          "Regular = stats in >= 60% of earlier games (>= 3) and >= 2 touches/tackles per game."])
+    return summary
 
 
 def main(argv: list[str] | None = None) -> int:

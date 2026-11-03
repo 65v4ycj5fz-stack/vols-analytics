@@ -130,6 +130,7 @@ export const DATASETS: { name: string; label: string; json?: boolean; csv?: bool
   { name: "results_history", label: "Results history (2019+)" },
   { name: "team_season_stats", label: "Team season stats (all FBS)" },
   { name: "team_game_stats", label: "Team per-game stats (all FBS)" },
+  { name: "team_profiles", label: "Tennessee + opponents: stats & tendencies with ranks" },
   { name: "ratings", label: "Ratings (ours + SP+, Elo, FPI)" },
   { name: "rating_trend", label: "Rating trend" },
   { name: "tendency_summary", label: "Tendency summary (all FBS)" },

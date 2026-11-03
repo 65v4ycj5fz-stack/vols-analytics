@@ -17,11 +17,11 @@ const COMPARE = ["points_pg", "points_allowed_pg", "off_epa", "def_epa", "off_su
 export default function Matchup() {
   const { gameId } = useParams();
   const nav = useNavigate();
-  const s = all<[Projections, Row[], Row[], MetricDef[]]>(useDataset<Projections>("projections"),
-    useDataset<Row[]>("team_season_stats"), useDataset<Row[]>("tendency_summary"), useDataset<MetricDef[]>("metrics"));
+  const s = all<[Projections, Row[], MetricDef[]]>(useDataset<Projections>("projections"),
+    useDataset<Row[]>("team_profiles"), useDataset<MetricDef[]>("metrics"));
   if (s.status === "loading") return <Loading />;
   if (s.status === "error") return <ErrorState error={s.error} />;
-  const [proj, stats, tend, metrics] = s.values;
+  const [proj, profiles, metrics] = s.values;
   const games = proj.data.games;
   const g = games.find((x) => String(x.game_id) === gameId) ?? games.find((x) => !x.completed) ?? games[games.length - 1];
   return (
@@ -33,13 +33,13 @@ export default function Matchup() {
             options={games.map((x) => ({ value: String(x.game_id), label: `Wk ${x.week}: ${siteWord(x.site)} ${x.opponent}${x.completed ? ` (${x.actual?.team}-${x.actual?.opp})` : ""}` }))} />
         </div>
       </PageHeader>
-      <MatchupBody key={g.game_id} g={g} model={proj.data.model} stats={stats.data} tend={tend.data} metrics={metrics.data} />
+      <MatchupBody key={g.game_id} g={g} model={proj.data.model} profiles={profiles.data} metrics={metrics.data} />
     </>
   );
 }
 
-function MatchupBody({ g, model, stats, tend, metrics }:
-  { g: GameProjection; model: Projections["model"]; stats: Row[]; tend: Row[]; metrics: MetricDef[] }) {
+function MatchupBody({ g, model, profiles, metrics }:
+  { g: GameProjection; model: Projections["model"]; profiles: Row[]; metrics: MetricDef[] }) {
   const factor = (k: string) => g.factors.find((f) => f.key === k)?.points ?? 0;
   const fitted = g.adjustments.filter((a) => a.source === "fitted");
   const inj = g.adjustments.find((a) => a.key === "injuries");
@@ -150,7 +150,7 @@ function MatchupBody({ g, model, stats, tend, metrics }:
         </Card>
       </div>
 
-      <SideBySide opp={g.opponent} stats={stats} tend={tend} metrics={metrics} />
+      <SideBySide opp={g.opponent} profiles={profiles} metrics={metrics} />
     </div>
   );
 }
@@ -175,9 +175,8 @@ function Slider({ label, value, min, max, step, onChange, display, hint }:
   );
 }
 
-function SideBySide({ opp, stats, tend, metrics }: { opp: string; stats: Row[]; tend: Row[]; metrics: MetricDef[] }) {
-  const merged = (t: string) => ({ ...(stats.find((r) => r.team === t) ?? {}), ...(tend.find((r) => r.team === t) ?? {}) } as Row);
-  const a = merged(TEAM), b = merged(opp);
+function SideBySide({ opp, profiles, metrics }: { opp: string; profiles: Row[]; metrics: MetricDef[] }) {
+  const a = profiles.find((r) => r.team === TEAM) ?? ({} as Row), b = profiles.find((r) => r.team === opp) ?? ({} as Row);
   if (!b.team) return <Card title="Season stats"><Empty title={`${opp} is not an FBS team`}>Season stat comparisons cover FBS teams only.</Empty></Card>;
   const defs = COMPARE.map((k) => metrics.find((m) => m.key === k)).filter(Boolean) as MetricDef[];
   return (

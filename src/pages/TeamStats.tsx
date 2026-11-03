@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { C } from "../components/chartColors";
 import { LineSeriesChart } from "../components/lazyCharts";
 import { DataTable } from "../components/DataTable";
@@ -19,27 +19,51 @@ const TREND: { key: string; label: string; unit: string; opp?: string }[] = [
   { key: "off_pass_epa", label: "Pass EPA/play: offense vs defense allowed", unit: "EPA/play", opp: "def_pass_epa" },
 ];
 
+interface Trends { games: (Record<string, unknown> & { week: number; opponent: string })[]; fbs_avg: Record<string, number> }
+
 export default function TeamStats() {
-  const s = all<[Row[], Row[], MetricDef[], Row[]]>(useDataset<Row[]>("team_season_stats"), useDataset<Row[]>("tendency_summary"),
-    useDataset<MetricDef[]>("metrics"), useDataset<Row[]>("team_game_stats"));
+  // Small slices load first; the all-FBS tables load only when that section scrolls into view.
+  const s = all<[Row[], MetricDef[], Trends]>(useDataset<Row[]>("team_profiles"), useDataset<MetricDef[]>("metrics"),
+    useDataset<Trends>("team_trends"));
   if (s.status === "loading") return <Loading />;
   if (s.status === "error") return <ErrorState error={s.error} />;
-  const [stats, tend, metrics, games] = s.values;
+  const [profiles, metrics, trends] = s.values;
   return (
     <>
       <PageHeader title="Team Stats" subtitle="Season and per-game stats for Tennessee with national (FBS) and SEC ranks; 1 = best." />
       <div className="space-y-4">
-        <Profile stats={stats.data} tend={tend.data} metrics={metrics.data} meta={stats.meta} />
-        <Trends games={games.data} meta={games.meta} />
-        <AllTeams stats={stats.data} tend={tend.data} metrics={metrics.data} meta={stats.meta} />
+        <Profile row={profiles.data.find((r) => r.team === TEAM)!} metrics={metrics.data} meta={profiles.meta} />
+        <TrendChart trends={trends.data} meta={trends.meta} />
+        <WhenNear placeholder={<Card title="All FBS teams" subtitle="Loads when you scroll here…"><div className="h-96" /></Card>}>
+          <AllTeamsLoader metrics={metrics.data} />
+        </WhenNear>
       </div>
     </>
   );
 }
 
-function Profile({ stats, tend, metrics, meta }: { stats: Row[]; tend: Row[]; metrics: MetricDef[]; meta: Meta }) {
-  const row = { ...stats.find((r) => r.team === TEAM), ...tend.find((r) => r.team === TEAM) } as Row;
-  const n = stats.length;
+function WhenNear({ children, placeholder }: { children: React.ReactNode; placeholder: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [near, setNear] = useState(typeof IntersectionObserver === "undefined");
+  useEffect(() => {
+    if (near || !ref.current) return;
+    const io = new IntersectionObserver((e) => { if (e.some((x) => x.isIntersecting)) setNear(true); }, { rootMargin: "400px" });
+    io.observe(ref.current);
+    return () => io.disconnect();
+  }, [near]);
+  return near ? <>{children}</> : <div ref={ref}>{placeholder}</div>;
+}
+
+function AllTeamsLoader({ metrics }: { metrics: MetricDef[] }) {
+  const s = all<[Row[], Row[]]>(useDataset<Row[]>("team_season_stats"), useDataset<Row[]>("tendency_summary"));
+  if (s.status === "loading") return <Loading label="Loading all FBS teams…" />;
+  if (s.status === "error") return <ErrorState error={s.error} />;
+  const [stats, tend] = s.values;
+  return <AllTeams stats={stats.data} tend={tend.data} metrics={metrics} meta={stats.meta} />;
+}
+
+function Profile({ row, metrics, meta }: { row: Row; metrics: MetricDef[]; meta: Meta }) {
+  const n = row.fbs_teams as number;
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       {GROUPS.map(([g, label]) => {
@@ -70,19 +94,16 @@ function Profile({ stats, tend, metrics, meta }: { stats: Row[]; tend: Row[]; me
   );
 }
 
-function Trends({ games, meta }: { games: Row[]; meta: Meta }) {
+function TrendChart({ trends, meta }: { trends: Trends; meta: Meta }) {
   const [key, setKey] = useState(TREND[0].key);
   const t = TREND.find((x) => x.key === key)!;
-  const mine = games.filter((g) => g.team === TEAM).sort((a, b) => (a.week as number) - (b.week as number));
-  const fbsAvg = useMemo(() => {
-    const v = games.map((g) => g[t.key]).filter((x): x is number => typeof x === "number");
-    return v.reduce((a, b) => a + b, 0) / v.length;
-  }, [games, t.key]);
-  const data = mine.map((g) => ({ week: g.week as number, opponent: g.opponent as string, a: g[t.key] as number, b: g[t.opp!] as number }));
+  const mine = [...trends.games].sort((a, b) => a.week - b.week);
+  const fbsAvg = trends.fbs_avg[t.key];
+  const data = mine.map((g) => ({ week: g.week, opponent: g.opponent, a: g[t.key] as number, b: g[t.opp!] as number }));
   const scale = t.unit === "%" ? 100 : 1;
   const shown = data.map((d) => ({ ...d, a: d.a * scale, b: d.b * scale }));
   return (
-    <ChartFrame title={`Game by game: ${t.label}`} subtitle={`${TEAM} 2026, by week. Units: ${t.unit === "%" ? "percent" : t.unit}. Dashed line = FBS average per team-game.`}
+    <ChartFrame title={`Game by game: ${t.label}`} subtitle={`${TEAM}, by week. Units: ${t.unit === "%" ? "percent" : t.unit}. Dashed line = FBS average per team-game.`}
       meta={meta}
       table={<SimpleTable head={["Week", "Opponent", "Offense", "Defense allowed"]}
         rows={data.map((d) => [d.week, d.opponent, fmt(d.a, t.unit), fmt(d.b, t.unit)])} />}>

@@ -670,6 +670,197 @@ Sources: CollegeFootballData.com. Rows: 1122. CSV: yes.
 | `def_ypp` | number | Yards per play allowed (yds). Opponent total yards / opponent plays. |
 | `margin` | number | points_for - points_against |
 
+## `team_profiles`
+
+Season stats + tendencies with national/conference ranks for Tennessee and its opponents (a slice of team_season_stats and tendency_summary).
+
+Sources: CollegeFootballData.com. Rows: 12. CSV: yes.
+
+| Column | Type | Description |
+|---|---|---|
+| `team` | text | CFBD team name |
+| `conference` | text | Conference |
+| `team_id` | number | CFBD team id |
+| `abbreviation` | text | Team abbreviation |
+| `color` | text | Team color from CFBD (not used for team identity on the site) |
+| `games` | number | Games played |
+| `points_pg` | number | Points per game (pts). Points scored / games played (all opponents). |
+| `points_allowed_pg` | number | Points allowed per game (pts). Points allowed / games played. |
+| `off_ypp` | number | Yards per play (yds). Total yards / (rush attempts + pass attempts). Sacks count as rushes in NCAA stats. |
+| `def_ypp` | number | Yards per play allowed (yds). Opponent total yards / opponent plays. |
+| `off_epa` | number | EPA per play (pts/play). CFBD predicted points added (PPA, an EPA measure) per offensive play; excludes garbage time per CFBD. |
+| `off_rush_epa` | number | Rush EPA per play (pts/play). PPA per rushing play. |
+| `off_pass_epa` | number | Pass EPA per play (pts/play). PPA per passing play. |
+| `off_success` | number | Success rate (%). Share of plays gaining 50% of needed yards on 1st down, 70% on 2nd, 100% on 3rd/4th. |
+| `off_explosiveness` | number | Explosiveness (pts/play). Average PPA on successful plays (CFBD definition). |
+| `off_pts_per_opp` | number | Points per trip inside the 40 (pts). CFBD points per scoring opportunity (drive reaching the opponent 40). Our 'finishing drives' measure. |
+| `off_field_pos` | number | Avg. starting field position (yds to goal). CFBD averageStart for own drives: yards from the opponent end zone (lower = shorter field). |
+| `def_epa` | number | EPA per play allowed (pts/play). PPA per opponent play. |
+| `def_rush_epa` | number | Rush EPA allowed (pts/play). PPA per opponent rushing play. |
+| `def_pass_epa` | number | Pass EPA allowed (pts/play). PPA per opponent passing play. |
+| `def_success` | number | Success rate allowed (%). Opponent success rate. |
+| `def_explosiveness` | number | Explosiveness allowed (pts/play). Opponent average PPA on successful plays. |
+| `def_pts_per_opp` | number | Points per trip inside the 40 allowed (pts). Opponent points per scoring opportunity. |
+| `def_field_pos` | number | Opp. avg. starting field position (yds to goal). CFBD averageStart for opponent drives (higher = longer field for the opponent). |
+| `def_havoc` | number | Havoc rate (%). Share of opponent plays with a TFL, forced fumble, INT or PBU (CFBD). |
+| `off_havoc_allowed` | number | Havoc allowed (%). Share of own plays with a havoc event. |
+| `stuff_rate_allowed` | number | Stuff rate allowed (%). Share of own runs stopped at or behind the line. |
+| `def_stuff_rate` | number | Stuff rate (%). Share of opponent runs stopped at or behind the line. |
+| `third_down_pct` | number | 3rd-down conversion (%). 3rd-down conversions / attempts. |
+| `third_down_pct_allowed` | number | 3rd-down conversion allowed (%). Opponent 3rd-down conversions / attempts. |
+| `fourth_down_pct` | number | 4th-down conversion (%). 4th-down conversions / attempts. |
+| `fourth_down_att_pg` | number | 4th-down attempts per game (att). 4th-down attempts / games (aggressiveness proxy, not a quality measure). |
+| `turnovers_pg` | number | Turnovers per game (TO). Interceptions thrown + fumbles lost, per game. |
+| `takeaways_pg` | number | Takeaways per game (TO). Opponent turnovers per game. |
+| `turnover_margin` | number | Turnover margin (TO). Takeaways - turnovers (season total). |
+| `penalties_pg` | number | Penalties per game (pen). Accepted penalties per game. |
+| `penalty_yards_pg` | number | Penalty yards per game (yds). Penalty yards per game. |
+| `plays_pg` | number | Plays per game (plays). Offensive plays per game (CFBD advanced stats). Pace measure; not good or bad. |
+| `sec_per_play` | number | Seconds of possession per play (sec). Possession time / offensive plays. Lower = faster tempo; not good or bad. |
+| `points_pg_rank` | number | National (fbs) rank of `points_pg` (1 = best; for style stats 1 = most) |
+| `points_pg_conf_rank` | number | Conference rank of `points_pg` (1 = best; for style stats 1 = most) |
+| `points_allowed_pg_rank` | number | National (fbs) rank of `points_allowed_pg` (1 = best; for style stats 1 = most) |
+| `points_allowed_pg_conf_rank` | number | Conference rank of `points_allowed_pg` (1 = best; for style stats 1 = most) |
+| `off_ypp_rank` | number | National (fbs) rank of `off_ypp` (1 = best; for style stats 1 = most) |
+| `off_ypp_conf_rank` | number | Conference rank of `off_ypp` (1 = best; for style stats 1 = most) |
+| `def_ypp_rank` | number | National (fbs) rank of `def_ypp` (1 = best; for style stats 1 = most) |
+| `def_ypp_conf_rank` | number | Conference rank of `def_ypp` (1 = best; for style stats 1 = most) |
+| `off_epa_rank` | number | National (fbs) rank of `off_epa` (1 = best; for style stats 1 = most) |
+| `off_epa_conf_rank` | number | Conference rank of `off_epa` (1 = best; for style stats 1 = most) |
+| `off_rush_epa_rank` | number | National (fbs) rank of `off_rush_epa` (1 = best; for style stats 1 = most) |
+| `off_rush_epa_conf_rank` | number | Conference rank of `off_rush_epa` (1 = best; for style stats 1 = most) |
+| `off_pass_epa_rank` | number | National (fbs) rank of `off_pass_epa` (1 = best; for style stats 1 = most) |
+| `off_pass_epa_conf_rank` | number | Conference rank of `off_pass_epa` (1 = best; for style stats 1 = most) |
+| `off_success_rank` | number | National (fbs) rank of `off_success` (1 = best; for style stats 1 = most) |
+| `off_success_conf_rank` | number | Conference rank of `off_success` (1 = best; for style stats 1 = most) |
+| `off_explosiveness_rank` | number | National (fbs) rank of `off_explosiveness` (1 = best; for style stats 1 = most) |
+| `off_explosiveness_conf_rank` | number | Conference rank of `off_explosiveness` (1 = best; for style stats 1 = most) |
+| `def_epa_rank` | number | National (fbs) rank of `def_epa` (1 = best; for style stats 1 = most) |
+| `def_epa_conf_rank` | number | Conference rank of `def_epa` (1 = best; for style stats 1 = most) |
+| `def_rush_epa_rank` | number | National (fbs) rank of `def_rush_epa` (1 = best; for style stats 1 = most) |
+| `def_rush_epa_conf_rank` | number | Conference rank of `def_rush_epa` (1 = best; for style stats 1 = most) |
+| `def_pass_epa_rank` | number | National (fbs) rank of `def_pass_epa` (1 = best; for style stats 1 = most) |
+| `def_pass_epa_conf_rank` | number | Conference rank of `def_pass_epa` (1 = best; for style stats 1 = most) |
+| `def_success_rank` | number | National (fbs) rank of `def_success` (1 = best; for style stats 1 = most) |
+| `def_success_conf_rank` | number | Conference rank of `def_success` (1 = best; for style stats 1 = most) |
+| `def_explosiveness_rank` | number | National (fbs) rank of `def_explosiveness` (1 = best; for style stats 1 = most) |
+| `def_explosiveness_conf_rank` | number | Conference rank of `def_explosiveness` (1 = best; for style stats 1 = most) |
+| `def_havoc_rank` | number | National (fbs) rank of `def_havoc` (1 = best; for style stats 1 = most) |
+| `def_havoc_conf_rank` | number | Conference rank of `def_havoc` (1 = best; for style stats 1 = most) |
+| `off_havoc_allowed_rank` | number | National (fbs) rank of `off_havoc_allowed` (1 = best; for style stats 1 = most) |
+| `off_havoc_allowed_conf_rank` | number | Conference rank of `off_havoc_allowed` (1 = best; for style stats 1 = most) |
+| `third_down_pct_rank` | number | National (fbs) rank of `third_down_pct` (1 = best; for style stats 1 = most) |
+| `third_down_pct_conf_rank` | number | Conference rank of `third_down_pct` (1 = best; for style stats 1 = most) |
+| `third_down_pct_allowed_rank` | number | National (fbs) rank of `third_down_pct_allowed` (1 = best; for style stats 1 = most) |
+| `third_down_pct_allowed_conf_rank` | number | Conference rank of `third_down_pct_allowed` (1 = best; for style stats 1 = most) |
+| `fourth_down_pct_rank` | number | National (fbs) rank of `fourth_down_pct` (1 = best; for style stats 1 = most) |
+| `fourth_down_pct_conf_rank` | number | Conference rank of `fourth_down_pct` (1 = best; for style stats 1 = most) |
+| `fourth_down_att_pg_rank` | number | National (fbs) rank of `fourth_down_att_pg` (1 = best; for style stats 1 = most) |
+| `fourth_down_att_pg_conf_rank` | number | Conference rank of `fourth_down_att_pg` (1 = best; for style stats 1 = most) |
+| `off_pts_per_opp_rank` | number | National (fbs) rank of `off_pts_per_opp` (1 = best; for style stats 1 = most) |
+| `off_pts_per_opp_conf_rank` | number | Conference rank of `off_pts_per_opp` (1 = best; for style stats 1 = most) |
+| `def_pts_per_opp_rank` | number | National (fbs) rank of `def_pts_per_opp` (1 = best; for style stats 1 = most) |
+| `def_pts_per_opp_conf_rank` | number | Conference rank of `def_pts_per_opp` (1 = best; for style stats 1 = most) |
+| `off_field_pos_rank` | number | National (fbs) rank of `off_field_pos` (1 = best; for style stats 1 = most) |
+| `off_field_pos_conf_rank` | number | Conference rank of `off_field_pos` (1 = best; for style stats 1 = most) |
+| `def_field_pos_rank` | number | National (fbs) rank of `def_field_pos` (1 = best; for style stats 1 = most) |
+| `def_field_pos_conf_rank` | number | Conference rank of `def_field_pos` (1 = best; for style stats 1 = most) |
+| `turnovers_pg_rank` | number | National (fbs) rank of `turnovers_pg` (1 = best; for style stats 1 = most) |
+| `turnovers_pg_conf_rank` | number | Conference rank of `turnovers_pg` (1 = best; for style stats 1 = most) |
+| `takeaways_pg_rank` | number | National (fbs) rank of `takeaways_pg` (1 = best; for style stats 1 = most) |
+| `takeaways_pg_conf_rank` | number | Conference rank of `takeaways_pg` (1 = best; for style stats 1 = most) |
+| `turnover_margin_rank` | number | National (fbs) rank of `turnover_margin` (1 = best; for style stats 1 = most) |
+| `turnover_margin_conf_rank` | number | Conference rank of `turnover_margin` (1 = best; for style stats 1 = most) |
+| `penalties_pg_rank` | number | National (fbs) rank of `penalties_pg` (1 = best; for style stats 1 = most) |
+| `penalties_pg_conf_rank` | number | Conference rank of `penalties_pg` (1 = best; for style stats 1 = most) |
+| `penalty_yards_pg_rank` | number | National (fbs) rank of `penalty_yards_pg` (1 = best; for style stats 1 = most) |
+| `penalty_yards_pg_conf_rank` | number | Conference rank of `penalty_yards_pg` (1 = best; for style stats 1 = most) |
+| `plays_pg_rank` | number | National (fbs) rank of `plays_pg` (1 = best; for style stats 1 = most) |
+| `plays_pg_conf_rank` | number | Conference rank of `plays_pg` (1 = best; for style stats 1 = most) |
+| `sec_per_play_rank` | number | National (fbs) rank of `sec_per_play` (1 = best; for style stats 1 = most) |
+| `sec_per_play_conf_rank` | number | Conference rank of `sec_per_play` (1 = best; for style stats 1 = most) |
+| `stuff_rate_allowed_rank` | number | National (fbs) rank of `stuff_rate_allowed` (1 = best; for style stats 1 = most) |
+| `stuff_rate_allowed_conf_rank` | number | Conference rank of `stuff_rate_allowed` (1 = best; for style stats 1 = most) |
+| `def_stuff_rate_rank` | number | National (fbs) rank of `def_stuff_rate` (1 = best; for style stats 1 = most) |
+| `def_stuff_rate_conf_rank` | number | Conference rank of `def_stuff_rate` (1 = best; for style stats 1 = most) |
+| `plays` | number | Scrimmage plays in the bucket (non-garbage time) |
+| `early_down_pass_rate` | number | Early-down pass rate (%). Share of non-garbage 1st/2nd-down snaps that were passes (sacks count as passes). |
+| `proe` | number | Pass rate over expected (PROE) (%). Actual minus model-expected pass rate on 1st-3rd down, non-garbage. Expected = average FBS team in the same situation. |
+| `proe_ci_low` | number | 95% interval low for PROE |
+| `proe_ci_high` | number | 95% interval high for PROE |
+| `def_proe_faced` | number | PROE of offenses against this defense |
+| `shotgun_rate` | number | Shotgun/pistol rate (%). Share of snaps whose play-by-play text says 'Shotgun' (pistol is usually logged as shotgun). |
+| `no_huddle_rate` | number | No-huddle rate (%). Share of snaps whose play-by-play text says 'No Huddle' (tempo proxy; under-reported by some scorers). |
+| `deep_pass_rate` | number | Deep-pass rate (%). Share of pass attempts described as 'deep' among those with a depth noted (deep = 15+ air yards in ESPN charting). |
+| `explosive_rate` | number | Runs >= 10 yds / passes >= 20 yds |
+| `explosive_rush_rate` | number | Explosive run rate (%). Runs of 10+ yards / runs. |
+| `explosive_pass_rate` | number | Explosive pass rate (%). Passes of 20+ yards / dropbacks. |
+| `def_explosive_allowed` | number | Explosive plays allowed (%). Opponent explosive plays / opponent scrimmage plays. |
+| `sack_rate_allowed` | number | Sack rate allowed (%). Sacks / dropbacks. |
+| `def_sack_rate` | number | Sack rate (%). Sacks / opponent dropbacks (the only pressure measure in public PBP). |
+| `def_havoc_pbp` | number | Havoc rate (PBP) (%). Sacks, TFLs, INTs, fumbles and pass breakups noted in play text / opponent scrimmage plays. |
+| `rz_trips` | number | Red-zone trips (drives with a snap at opp 20 or closer) |
+| `rz_td_rate` | number | Red-zone TD rate (%). Drives with a snap at the opponent 20 or closer that ended in an offensive TD. |
+| `rz_score_rate` | number | Red-zone scoring rate (%). Red-zone trips ending in a TD or made FG. |
+| `def_rz_trips` | number | Opponent red-zone trips |
+| `def_rz_td_rate` | number | Red-zone TD rate allowed (%). Opponent red-zone trips ending in a TD. |
+| `def_rz_score_rate` | number | Red-zone scoring rate allowed (%). Opponent red-zone trips ending in a TD or made FG. |
+| `fourth_downs` | number | Non-garbage 4th downs |
+| `go_rate` | number | 4th-down go rate (%). Share of non-garbage 4th downs where the offense ran a play (vs punt/FG). |
+| `go_rate_expected` | number | Typical-coach go rate in the same spots |
+| `go_over_expected` | number | 4th-down go rate over expected (%). Go rate minus what a typical FBS coach does in the same situations. Aggressiveness, not decision quality. |
+| `go_oe_ci_low` | number | 95% interval low for go rate over expected |
+| `go_oe_ci_high` | number | 95% interval high for go rate over expected |
+| `off_early_down_success` | number | Early-down success rate (%). Success rate on 1st and 2nd down. |
+| `off_third_long_success` | number | 3rd-and-7+ success (%). Conversion-level success on 3rd and 7 or longer. |
+| `def_early_down_success` | number | Early-down success allowed (%). Opponent success rate on 1st and 2nd down. |
+| `def_third_long_success` | number | 3rd-and-7+ success allowed (%). Opponent success on 3rd and 7 or longer. |
+| `early_down_pass_rate_rank` | number | National (fbs) rank of `early_down_pass_rate` (1 = best; for style stats 1 = most) |
+| `early_down_pass_rate_conf_rank` | number | Conference rank of `early_down_pass_rate` (1 = best; for style stats 1 = most) |
+| `proe_rank` | number | National (fbs) rank of `proe` (1 = best; for style stats 1 = most) |
+| `proe_conf_rank` | number | Conference rank of `proe` (1 = best; for style stats 1 = most) |
+| `shotgun_rate_rank` | number | National (fbs) rank of `shotgun_rate` (1 = best; for style stats 1 = most) |
+| `shotgun_rate_conf_rank` | number | Conference rank of `shotgun_rate` (1 = best; for style stats 1 = most) |
+| `no_huddle_rate_rank` | number | National (fbs) rank of `no_huddle_rate` (1 = best; for style stats 1 = most) |
+| `no_huddle_rate_conf_rank` | number | Conference rank of `no_huddle_rate` (1 = best; for style stats 1 = most) |
+| `deep_pass_rate_rank` | number | National (fbs) rank of `deep_pass_rate` (1 = best; for style stats 1 = most) |
+| `deep_pass_rate_conf_rank` | number | Conference rank of `deep_pass_rate` (1 = best; for style stats 1 = most) |
+| `explosive_rate_rank` | number | National (fbs) rank of `explosive_rate` (1 = best; for style stats 1 = most) |
+| `explosive_rate_conf_rank` | number | Conference rank of `explosive_rate` (1 = best; for style stats 1 = most) |
+| `explosive_rush_rate_rank` | number | National (fbs) rank of `explosive_rush_rate` (1 = best; for style stats 1 = most) |
+| `explosive_rush_rate_conf_rank` | number | Conference rank of `explosive_rush_rate` (1 = best; for style stats 1 = most) |
+| `explosive_pass_rate_rank` | number | National (fbs) rank of `explosive_pass_rate` (1 = best; for style stats 1 = most) |
+| `explosive_pass_rate_conf_rank` | number | Conference rank of `explosive_pass_rate` (1 = best; for style stats 1 = most) |
+| `def_explosive_allowed_rank` | number | National (fbs) rank of `def_explosive_allowed` (1 = best; for style stats 1 = most) |
+| `def_explosive_allowed_conf_rank` | number | Conference rank of `def_explosive_allowed` (1 = best; for style stats 1 = most) |
+| `sack_rate_allowed_rank` | number | National (fbs) rank of `sack_rate_allowed` (1 = best; for style stats 1 = most) |
+| `sack_rate_allowed_conf_rank` | number | Conference rank of `sack_rate_allowed` (1 = best; for style stats 1 = most) |
+| `def_sack_rate_rank` | number | National (fbs) rank of `def_sack_rate` (1 = best; for style stats 1 = most) |
+| `def_sack_rate_conf_rank` | number | Conference rank of `def_sack_rate` (1 = best; for style stats 1 = most) |
+| `def_havoc_pbp_rank` | number | National (fbs) rank of `def_havoc_pbp` (1 = best; for style stats 1 = most) |
+| `def_havoc_pbp_conf_rank` | number | Conference rank of `def_havoc_pbp` (1 = best; for style stats 1 = most) |
+| `rz_td_rate_rank` | number | National (fbs) rank of `rz_td_rate` (1 = best; for style stats 1 = most) |
+| `rz_td_rate_conf_rank` | number | Conference rank of `rz_td_rate` (1 = best; for style stats 1 = most) |
+| `rz_score_rate_rank` | number | National (fbs) rank of `rz_score_rate` (1 = best; for style stats 1 = most) |
+| `rz_score_rate_conf_rank` | number | Conference rank of `rz_score_rate` (1 = best; for style stats 1 = most) |
+| `def_rz_td_rate_rank` | number | National (fbs) rank of `def_rz_td_rate` (1 = best; for style stats 1 = most) |
+| `def_rz_td_rate_conf_rank` | number | Conference rank of `def_rz_td_rate` (1 = best; for style stats 1 = most) |
+| `def_rz_score_rate_rank` | number | National (fbs) rank of `def_rz_score_rate` (1 = best; for style stats 1 = most) |
+| `def_rz_score_rate_conf_rank` | number | Conference rank of `def_rz_score_rate` (1 = best; for style stats 1 = most) |
+| `go_rate_rank` | number | National (fbs) rank of `go_rate` (1 = best; for style stats 1 = most) |
+| `go_rate_conf_rank` | number | Conference rank of `go_rate` (1 = best; for style stats 1 = most) |
+| `go_over_expected_rank` | number | National (fbs) rank of `go_over_expected` (1 = best; for style stats 1 = most) |
+| `go_over_expected_conf_rank` | number | Conference rank of `go_over_expected` (1 = best; for style stats 1 = most) |
+| `off_early_down_success_rank` | number | National (fbs) rank of `off_early_down_success` (1 = best; for style stats 1 = most) |
+| `off_early_down_success_conf_rank` | number | Conference rank of `off_early_down_success` (1 = best; for style stats 1 = most) |
+| `def_early_down_success_rank` | number | National (fbs) rank of `def_early_down_success` (1 = best; for style stats 1 = most) |
+| `def_early_down_success_conf_rank` | number | Conference rank of `def_early_down_success` (1 = best; for style stats 1 = most) |
+| `off_third_long_success_rank` | number | National (fbs) rank of `off_third_long_success` (1 = best; for style stats 1 = most) |
+| `off_third_long_success_conf_rank` | number | Conference rank of `off_third_long_success` (1 = best; for style stats 1 = most) |
+| `def_third_long_success_rank` | number | National (fbs) rank of `def_third_long_success` (1 = best; for style stats 1 = most) |
+| `def_third_long_success_conf_rank` | number | Conference rank of `def_third_long_success` (1 = best; for style stats 1 = most) |
+| `fbs_teams` | number |  |
+
 ## `team_season_stats`
 
 Season team stats for every FBS team with national and conference ranks (1 = best).
@@ -786,6 +977,14 @@ Sources: CollegeFootballData.com. Rows: 138. CSV: yes.
 | `stuff_rate_allowed_conf_rank` | number | Conference rank of `stuff_rate_allowed` (1 = best; for style stats 1 = most) |
 | `def_stuff_rate_rank` | number | National (fbs) rank of `def_stuff_rate` (1 = best; for style stats 1 = most) |
 | `def_stuff_rate_conf_rank` | number | Conference rank of `def_stuff_rate` (1 = best; for style stats 1 = most) |
+
+## `team_trends`
+
+Tennessee per-game stats for trend charts, plus the FBS average per team-game.
+
+Sources: CollegeFootballData.com. Rows: —. CSV: no.
+
+Object with keys: `games`, `fbs_avg`
 
 ## `tendency_models`
 
